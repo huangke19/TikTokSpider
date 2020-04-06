@@ -19,15 +19,20 @@ import sys
 from argparse import ArgumentParser
 from time import sleep
 
+# 导入第三方库
 import requests
 
 # 全局变量
 VIDEO_URLS, PAGE = [], 1
 Web_UA = '"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.81 Safari/537.36"'
 
-URL =  "https://www.iesdouyin.com/web/api/v2/aweme/post/?sec_uid=MS4wLjABAAAATTySfZH6Bim5CzTjtSN3kG-Bdsz3-d_mmbH7bVulXcE&count=21&max_cursor=0&aid=1128&_signature=5RdERhARu6eW4U4por2DD-UXRF&dytk=94bdc8f24a41fa0684e9272be7681ecd"
+########################################################## 替换内容 ################################################################################################################################################################################################
+#
+# 此处使用POSTMAN生成的url替换
+URL = "https://www.iesdouyin.com/web/api/v2/aweme/post/?sec_uid=MS4wLjABAAAATTySfZH6Bim5CzTjtSN3kG-Bdsz3-d_mmbH7bVulXcE&count=21&max_cursor=0&aid=1128&_signature=5RdERhARu6eW4U4por2DD-UXRF&dytk=94bdc8f24a41fa0684e9272be7681ecd"
 
-URL_headers = {
+# 此处使用POSTMAN生成的headers代码替换
+URL_HEADERS = {
     'authority': 'www.iesdouyin.com',
     'accept': 'application/json',
     'sec-fetch-dest': 'empty',
@@ -39,6 +44,9 @@ URL_headers = {
     'accept-language': 'zh-CN,zh;q=0.9,zh-TW;q=0.8,en-US;q=0.7,en;q=0.6,ja;q=0.5',
     'cookie': '_ga=GA1.2.2125846103.1586174920; _gid=GA1.2.2096693768.1586174920'
 }
+#
+########################################################## 替换内容 ################################################################################################################################################################################################
+
 
 DOWNLOAD_HEADERS = {
     'Connection': "keep-alive",
@@ -79,7 +87,7 @@ def get_all_video_urls(user_id, max_cursor, dytk):
 
     payload = {}
 
-    headers, url = handle_headers_and_url(URL_headers, URL, user_id, max_cursor, dytk)
+    headers, url = handle_headers_and_url(URL_HEADERS, URL, user_id, max_cursor, dytk)
 
     try:
         response = requests.request("GET", url, headers=headers, data=payload)
