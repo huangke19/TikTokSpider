@@ -1,17 +1,18 @@
 ## 抖音爬虫
 
+配置虚拟环境和安装依赖包默认都会，略过
 
-
-有效期：2020/04/06可用
+<img src="https://github.com/huangke19/TikTokSpider/blob/master/pics/logo.jpg" width="400px" />
 
 
 
 ## 使用方法
 
-#### 需配合工具
 
-- Postman
-- Chrome Devtools
+
+#### 操作步骤视频演示
+
+https://www.bilibili.com/video/to_be_added
 
 
 
@@ -37,23 +38,16 @@
 
 1. F12打开Devtools
 2. 选择手机预览模式
-3. 点击作品，找到对应url
-4. 点击url，右键 - Copy - Copy as cURL
-
-
-
-#### STEP4:
-
-打开POSTMAN操作
-
-1. 点击左上角Import 
-2. 选择Paste Raw Text将复制的cURL粘贴进去，点击Import
-3. 此时点击Send请求检查是否有效
-4. 点击Send键紧邻的右下角code选项进入GENERATE CODE SNIPPETS
-5. 选择Python - Requests得到header和url
-6. 将headers和url替换到脚本开头的对应代码处即可
+3. 点击"**作品**"，找到加载视频时对应的url
+4. 运行脚本，依次输入url和用户ID（step2里有）
 
 
 
 
+
+## 如果有帮助，请我喝一瓶可乐？
+
+<img src="https://github.com/huangke19/TikTokSpider/blob/master/pics/wechat.png" width="200px" />
+
+<img src="https://github.com/huangke19/TikTokSpider/blob/master/pics/alipay.jpeg" width="200px" />
 
