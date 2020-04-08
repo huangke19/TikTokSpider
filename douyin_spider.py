@@ -5,9 +5,10 @@
 
 #############################
 #
-#  Author: huang ke
+#  Author: Huang Ke
 #  Email: huangkwell@163.com
-#  2020/4/6
+#  微信: 760208296
+#  复活时间: 2020/4/6
 #
 #############################
 
@@ -24,176 +25,12 @@ import requests
 
 # 全局变量
 VIDEO_URLS, PAGE = [], 1
-Web_UA = '"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.81 Safari/537.36"'
 
-########################################################## 替换内容 ################################################################################################################################################################################################
-#
-# 此处使用POSTMAN生成的url替换
-URL = "https://www.iesdouyin.com/web/api/v2/aweme/post/?sec_uid=MS4wLjABAAAATTySfZH6Bim5CzTjtSN3kG-Bdsz3-d_mmbH7bVulXcE&count=21&max_cursor=0&aid=1128&_signature=5RdERhARu6eW4U4por2DD-UXRF&dytk=94bdc8f24a41fa0684e9272be7681ecd"
+URL = input("目标URL: ").strip()
 
-# 此处使用POSTMAN生成的headers代码替换
-URL_HEADERS = {
-    'authority': 'www.iesdouyin.com',
-    'accept': 'application/json',
-    'sec-fetch-dest': 'empty',
-    'x-requested-with': 'XMLHttpRequest',
-    'user-agent': 'Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Mobile Safari/537.36',
-    'sec-fetch-site': 'same-origin',
-    'sec-fetch-mode': 'cors',
-    'referer': 'https://www.iesdouyin.com/share/user/63221320890?u_code=md2m918k&sec_uid=MS4wLjABAAAATTySfZH6Bim5CzTjtSN3kG-Bdsz3-d_mmbH7bVulXcE&timestamp=1586184808&utm_source=copy&utm_campaign=client_share&utm_medium=android&share_app_name=douyin',
-    'accept-language': 'zh-CN,zh;q=0.9,zh-TW;q=0.8,en-US;q=0.7,en;q=0.6,ja;q=0.5',
-    'cookie': '_ga=GA1.2.2125846103.1586174920; _gid=GA1.2.2096693768.1586174920'
+HEADERS = {
+    'user-agent': 'Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.163 Mobile Safari/537.36'
 }
-#
-########################################################## 替换内容 ################################################################################################################################################################################################
-
-
-DOWNLOAD_HEADERS = {
-    'Connection': "keep-alive",
-    'Upgrade-Insecure-Requests': "1",
-    'User-Agent': "Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 "
-                  "(KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1",
-    'Accept': "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*"
-              "/*;q=0.8",
-    'Accept-Encoding': "gzip, deflate, br",
-    'Accept-Language': "zh-CN,zh;q=0.9,zh-TW;q=0.8,en-US;q=0.7,en;q=0.6",
-    'Cache-Control': "no-cache",
-}
-
-
-def handle_headers_and_url(headers, url, user_id, max_cursor, dytk):
-    import re
-
-    referer = headers.get('referer')
-    new_referer = re.sub('user/\d+', referer, 'user/%s' % user_id)
-    headers['referer'] = new_referer
-
-    new_url1 = re.sub('dytk=\w*', 'dytk=%s' % dytk, url)
-    new_url = re.sub('max_cursor=0', 'max_cursor=%s' % max_cursor, new_url1, )
-
-    return headers, new_url
-
-
-def get_all_video_urls(user_id, max_cursor, dytk):
-    '''
-    获取用户所有视频的源地址url
-
-    :param user_id:     用户抖音id
-    :param max_cursor:  下一页地址游标
-    :param dytk:        抖音token
-
-    :return:            video urls
-    '''
-
-    payload = {}
-
-    headers, url = handle_headers_and_url(URL_HEADERS, URL, user_id, max_cursor, dytk)
-
-    try:
-        response = requests.request("GET", url, headers=headers, data=payload)
-
-        if response.status_code == 200:
-            data = response.json()
-            l = data['aweme_list']
-            if l == []:
-                print("fuck, 又是空的")
-                return
-
-            for li in data['aweme_list']:
-                name = li.get('desc')
-                url = li.get('video').get('play_addr').get('url_list')[0]
-                VIDEO_URLS.append([name, url])
-                print(VIDEO_URLS)
-            # return VIDEO_URLS
-
-            # 下拉获取更多视频
-            if data['has_more'] is True and data.get('max_cursor') != 0:
-                sleep(1)
-                global PAGE
-                print('正在收集第%s页视频地址' % (PAGE))
-                PAGE += 1
-                return get_all_video_urls(
-                    user_id, data.get('max_cursor'), dytk)
-            else:
-                return VIDEO_URLS
-        else:
-            print(response.status_code)
-            return
-    except Exception as e:
-        print('failed,', e)
-        return
-
-
-def download_video(index, username, name, url, retry=3):
-    '''
-    下载视频,显示进度
-
-    :param index:       视频序号
-    :param username:    用户名
-    :param name:        视频名
-    :param url:         视频地址
-    :param retry:       重试次数
-
-    :return:            None
-    '''
-    HEADERS = DOWNLOAD_HEADERS
-
-    print("\r正在下载第%s个视频: %s" % (index, name))
-    try:
-        response = requests.get(
-            url,
-            stream=True,
-            headers=HEADERS,
-            timeout=15,
-            allow_redirects=False)
-        video_url = response.headers['Location']
-        video_response = requests.get(
-            video_url, headers=DOWNLOAD_HEADERS, timeout=15)
-
-        # 保存视频，显示下载进度
-        if video_response.status_code == 200:
-            video_size = int(video_response.headers['Content-Length'])
-            with open('%s/%s.mp4' % (username, name), 'wb') as f:
-                data_length = 0
-                for data in video_response.iter_content(chunk_size=1024):
-                    data_length += len(data)
-                    f.write(data)
-                    done = int(50 * data_length / video_size)
-                    sys.stdout.write("\r下载进度: [%s%s]" % (
-                        '█' * done, ' ' * (50 - done)))
-                    sys.stdout.flush()
-
-        # 失败重试3次，超过放弃
-        elif video_response.status_code != 200 and retry:
-            retry -= 1
-            download_video(index, username, name, url, retry)
-        else:
-            return
-    except Exception as e:
-        print('download failed,', name, e)
-        return None
-
-
-def get_name_and_dytk(num):
-    '''
-    获取用户名和dytk
-
-    :param num:     用户抖音id
-    :returns:       username，dytk
-    '''
-    url = "https://www.amemv.com/share/user/%s" % num
-    headers = {'user-agent': Web_UA}
-    try:
-        response = requests.request("GET", url, headers=headers)
-        name = re.findall('<p class="nickname">(.*?)</p>', response.text)[0]
-        dytk = re.findall("dytk: '(.*?)'", response.text)[0]
-        return name, dytk
-    except (TypeError, IndexError):
-        sys.stdout.write("提示： 请确认输入的是用户ID，而不是抖音号或单个视频的id\n")
-        return None, None
-    except requests.exceptions:
-        sys.stdout.write("连接错误，未能获取正确数据\n")
-        return None, None
 
 
 def makedir(name):
@@ -229,10 +66,19 @@ def get_douyin_id():
     '''
     _id1 = get_id_from_cmd(sys.argv[1:])
     if _id1:
-        return _id1
+        if is_valid_id(_id1):
+            return _id1
+        else:
+            return get_douyin_id()
 
     _id2 = get_id_from_input()
-    return _id2 if _id2 else None
+    if _id2:
+        if is_valid_id(_id2):
+            return _id2
+        else:
+            return get_douyin_id()
+
+    return None
 
 
 def get_id_from_cmd(cmd_args):
@@ -259,7 +105,7 @@ def get_id_from_input():
     :return:    user_id
     '''
     _id = input('请输入你要爬取的抖音用户id: ')
-    return int(_id)
+    return _id
 
 
 def is_valid_id(_id):
@@ -277,29 +123,154 @@ def is_valid_id(_id):
     return True
 
 
-def main():
+def get_username(user_id):
     '''
-    主函数, 下载视频
+    获取用户名
 
-    :return: None
+    :param user_id:     用户抖音id
+    :returns:           username
     '''
-    _id = get_douyin_id()
-    if not is_valid_id(_id):
+    url = "https://www.amemv.com/share/user/%s" % user_id
+    headers = HEADERS
+    try:
+        response = requests.request("GET", url, headers=headers)
+        name = re.findall('<p class="nickname">(.*?)</p>', response.text)[0]
+        return name
+    except (TypeError, IndexError):
+        sys.stdout.write("提示： 请确认输入的是用户ID，而不是抖音号或单个视频的id\n")
+        return None, None
+    except requests.exceptions:
+        sys.stdout.write("连接错误，未能获取正确数据\n")
+        return None, None
+
+
+def get_all_video_urls(user_id, max_cursor):
+    '''
+    递归获取用户所有视频的源地址url
+
+    :param user_id:     用户抖音id
+    :param max_cursor:  下一页地址游标
+
+    :return:            urls
+    '''
+
+    url = re.sub('max_cursor=0', 'max_cursor=%s' % max_cursor, URL, )
+
+    try:
+        response = requests.request("GET", url, headers=HEADERS)
+
+        if response.status_code == 200:
+            data = response.json()
+            l = data['aweme_list']
+            if l == []:
+                print("没收到，或者到头了")
+                return VIDEO_URLS
+
+            for li in data['aweme_list']:
+                name = li.get('desc')
+                url = li.get('video').get('play_addr').get('url_list')[0]
+                VIDEO_URLS.append([name, url])
+                print(VIDEO_URLS[-1])
+
+            # 下拉获取更多视频
+            if data['has_more'] is True and data.get('max_cursor') != 0:
+                sleep(1)
+                global PAGE
+                print('正在收集第%s页视频地址' % (PAGE + 1))
+                PAGE += 1
+                return get_all_video_urls(
+                    user_id, data.get('max_cursor'))
+            else:
+                return VIDEO_URLS
+        else:
+            print(response.status_code)
+            return
+    except Exception as e:
+        print('failed,', e)
         return
 
-    username, dytk = get_name_and_dytk(_id)
-    if not (username and dytk):
-        return
 
-    makedir(username)
-    VIDEO_URLS = get_all_video_urls(_id, 0, dytk)
-    for index, item in enumerate(VIDEO_URLS, 1):
+def download_video(index, username, name, url, retry=3):
+    '''
+    下载视频,显示进度
+
+    :param index:       视频序号
+    :param username:    用户名
+    :param name:        视频名
+    :param url:         视频地址
+    :param retry:       重试次数
+
+    :return:            None
+    '''
+
+    print("\r下载第%s个视频: %s" % (index, name))
+    try:
+        response = requests.get(
+            url,
+            stream=True,
+            headers=HEADERS,
+            timeout=15,
+            allow_redirects=False)
+        video_url = response.headers['Location']
+        video_response = requests.get(
+            video_url, headers=HEADERS, timeout=15)
+
+        # 保存视频，显示下载进度
+        if video_response.status_code == 200:
+            video_size = int(video_response.headers['Content-Length'])
+            with open('%s/%s.mp4' % (username, name), 'wb') as f:
+                data_length = 0
+                for data in video_response.iter_content(chunk_size=1024):
+                    data_length += len(data)
+                    f.write(data)
+                    done = int(50 * data_length / video_size)
+                    sys.stdout.write("\r下载进度: [%s%s]" % (
+                        '█' * done, ' ' * (50 - done)))
+                    sys.stdout.flush()
+
+        # 失败重试3次，超过放弃
+        elif video_response.status_code != 200 and retry:
+            retry -= 1
+            download_video(index, username, name, url, retry)
+        else:
+            return
+    except Exception as e:
+        print('download failed,', name, e)
+        return None
+
+
+def download_all_videos(videl_urls, username):
+    """
+    下载所有的视频
+    """
+    for index, item in enumerate(videl_urls, 1):
         name = item[0]
         if name == '抖音-原创音乐短视频社区':
             name = name + str(index)
         url = item[1]
         download_video(index, username, name, url)
         sleep(1)
+    pass
+
+
+def main():
+    '''
+    主函数, 下载视频
+    :return: None
+    '''
+    _id = get_douyin_id()
+
+    username = get_username(_id)
+    if not username:
+        return
+    else:
+        makedir(username)
+
+    video_urls = get_all_video_urls(_id, 0)
+    if not video_urls:
+        return
+
+    download_all_videos(video_urls, username)
 
 
 if __name__ == '__main__':
