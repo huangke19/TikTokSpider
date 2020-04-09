@@ -163,7 +163,7 @@ def get_all_video_urls(user_id, max_cursor):
             data = response.json()
             l = data['aweme_list']
             if l == []:
-                print("没收到，或者到头了")
+                print("请检查输入的url地址，在Devtools里确认Response中aweme_list列表不为空")
                 return VIDEO_URLS
 
             for li in data['aweme_list']:
