@@ -14,48 +14,29 @@
 
 
 # 导入标准库
-import os
 import re
 import sys
-from argparse import ArgumentParser
 from time import sleep
 
 # 导入第三方库
 import requests
 
 # 全局变量
+from utils import (
+    get_id_from_cmd,
+    is_valid_id,
+    get_id_from_input,
+    input_user_agent,
+    input_request_url,
+    makedir
+)
+
 VIDEO_URLS, PAGE = [], 1
 
-URL = input("目标URL: ").strip()
-
+URL = input_request_url()
 HEADERS = {
-    'user-agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1'
+    'user-agent': input_user_agent()
 }
-
-
-def makedir(name):
-    '''
-    建立用户名文件夹
-
-    :param name:    username
-    :return:        None
-    '''
-    if not os.path.isdir(name):
-        os.mkdir(name)
-    else:
-        pass
-
-
-def parse_args(args):
-    '''
-    解析命令行参数
-
-    :param args:    命令行参数
-    :return:        新的parse_args函数
-    '''
-    parser = ArgumentParser()
-    parser.add_argument('--uid', dest='user_id', type=int, help='用户的抖音id')
-    return parser.parse_args(args)
 
 
 def get_douyin_id():
@@ -81,48 +62,6 @@ def get_douyin_id():
     return None
 
 
-def get_id_from_cmd(cmd_args):
-    '''
-    从命令行获取user_id
-
-    :param cmd_args:    命令行参数
-    :return:            user_id
-    '''
-    args = parse_args(cmd_args)
-    if not args:
-        return
-
-    if args.user_id:
-        _id = args.user_id
-        return _id
-    return None
-
-
-def get_id_from_input():
-    '''
-    从用户输入获取user_id
-
-    :return:    user_id
-    '''
-    _id = input('请输入你要爬取的抖音用户id: ')
-    return _id
-
-
-def is_valid_id(_id):
-    '''
-    检查用户输入的抖音id是否合法
-
-    :param _id:  user_id
-    :return:     bool
-    '''
-    if not _id:
-        return False
-    if not re.match('^\\d+$', str(_id).strip()):
-        sys.stdout.write("请输入正确格式的抖音id\n")
-        return False
-    return True
-
-
 def get_username(user_id):
     '''
     获取用户名
@@ -133,6 +72,7 @@ def get_username(user_id):
     url = "https://www.amemv.com/share/user/%s" % user_id
     headers = HEADERS
     try:
+        print("\n获取用户名，建立文件夹中...\n")
         response = requests.request("GET", url, headers=headers)
         name = re.findall('<p class="nickname">(.*?)</p>', response.text)[0]
         return name
@@ -157,7 +97,10 @@ def get_all_video_urls(user_id, max_cursor):
     url = re.sub('max_cursor=0', 'max_cursor=%s' % max_cursor, URL, )
 
     try:
+        global PAGE
+        print('\n正在收集第%s页视频地址\n' % (PAGE))
         response = requests.request("GET", url, headers=HEADERS)
+        print('第%s页视频地址获取成功\n' % (PAGE))
 
         if response.status_code == 200:
             data = response.json()
@@ -175,8 +118,6 @@ def get_all_video_urls(user_id, max_cursor):
             # 下拉获取更多视频
             if data['has_more'] is True and data.get('max_cursor') != 0:
                 sleep(1)
-                global PAGE
-                print('正在收集第%s页视频地址' % (PAGE + 1))
                 PAGE += 1
                 return get_all_video_urls(
                     user_id, data.get('max_cursor'))
@@ -203,7 +144,7 @@ def download_video(index, username, name, url, retry=3):
     :return:            None
     '''
 
-    print("\r下载第%s个视频: %s" % (index, name))
+    print("\n下载第%s个视频: %s" % (index, name))
     try:
         response = requests.get(
             url,
