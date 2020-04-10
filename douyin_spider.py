@@ -117,7 +117,7 @@ def get_all_video_urls(user_id, max_cursor):
 
             # 下拉获取更多视频
             if data['has_more'] is True and data.get('max_cursor') != 0:
-                sleep(1)
+                sleep(2)
                 PAGE += 1
                 return get_all_video_urls(
                     user_id, data.get('max_cursor'))
@@ -128,7 +128,7 @@ def get_all_video_urls(user_id, max_cursor):
             return
     except Exception as e:
         print('failed,', e)
-        return
+        return VIDEO_URLS
 
 
 def download_video(index, username, name, url, retry=3):
@@ -186,11 +186,11 @@ def download_all_videos(videl_urls, username):
     """
     for index, item in enumerate(videl_urls, 1):
         name = item[0]
-        if name == '抖音-原创音乐短视频社区':
-            name = name + str(index)
+        if name == '':
+            name = username + '_' + str(index)
         url = item[1]
         download_video(index, username, name, url)
-        sleep(1)
+        sleep(2)
     pass
 
 
