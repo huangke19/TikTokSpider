@@ -30,3 +30,5 @@ https://www.bilibili.com/video/BV1Pg4y187sy
 
 <img src="https://github.com/huangke19/TikTokSpider/blob/master/images/pay.jpg" width="300px" />
 
+打赏鸣谢：大饼饼、Sherolock福尔魔芋、cr
+
